@@ -401,6 +401,9 @@ body {
 /* 7-Day Forecast Styles */
 .seven-day-forecast {
   margin-top: 1.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .forecast-header {
@@ -408,17 +411,60 @@ body {
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
+  padding: 0.75rem 1rem;
   border-bottom: 2px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-tertiary);
+  border-radius: 8px 8px 0 0;
+  transition: all 0.3s ease;
+}
+
+.forecast-header.clickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.forecast-header.clickable:hover {
+  background: var(--bg-secondary);
+  transform: translateY(-1px);
+}
+
+.chevron {
+  font-size: 0.9rem;
+  transition: transform 0.3s ease;
+  color: var(--text-secondary);
+}
+
+.chevron.expanded {
+  transform: rotate(180deg);
+}
+
+.forecast-content {
+  max-height: 2000px;
+  overflow: hidden;
+  transition: max-height 0.4s ease, opacity 0.3s ease;
+  opacity: 1;
+}
+
+.forecast-content.collapsed {
+  max-height: 0;
+  opacity: 0;
 }
 
 .forecast-day {
   background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border: none;
+  border-bottom: 1px solid var(--border-color);
+  border-radius: 0;
   padding: 1rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0;
   transition: all 0.3s ease;
+}
+
+.forecast-day:last-child {
+  border-bottom: none;
 }
 
 .forecast-day:hover {

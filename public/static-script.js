@@ -108,7 +108,7 @@ class WeatherApp {
           `https://api.open-meteo.com/v1/forecast?latitude=${mountain.lat}&longitude=${mountain.lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Denver`
         ),
         fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${mountain.lat}&longitude=${mountain.lon}&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_sum,wind_speed_10m_max,wind_direction_10m_dominant&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Denver&forecast_days=3`
+          `https://api.open-meteo.com/v1/forecast?latitude=${mountain.lat}&longitude=${mountain.lon}&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_sum,wind_speed_10m_max,wind_direction_10m_dominant,cloud_cover_mean&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Denver&forecast_days=7`
         ),
       ]);
 
@@ -139,10 +139,40 @@ class WeatherApp {
       current.current.weather_code
     );
 
-    // Get today's, tomorrow's, and day after tomorrow's forecast
-    const todayIndex = 0;
-    const tomorrowIndex = 1;
-    const dayAfterIndex = 2;
+    // Create 7-day forecast with hiking analysis
+    const sevenDayForecast = [];
+    let bestHikingDay = 0;
+    let bestHikingScore = 0;
+
+    for (let i = 0; i < 7; i++) {
+      const dayData = {
+        high: Math.round(forecast.daily.temperature_2m_max[i]),
+        low: Math.round(forecast.daily.temperature_2m_min[i]),
+        condition: this.getWeatherDescription(forecast.daily.weather_code[i])
+          .condition,
+        description: this.getWeatherDescription(forecast.daily.weather_code[i])
+          .description,
+        icon: this.getWeatherDescription(forecast.daily.weather_code[i]).icon,
+        precipitation: forecast.daily.precipitation_sum[i] || 0,
+        windSpeed: Math.round(forecast.daily.wind_speed_10m_max[i] || 0),
+        cloudCover: Math.round(forecast.daily.cloud_cover_mean[i] || 0),
+      };
+
+      // Calculate hiking score
+      const hikingAnalysis = this.calculateHikingScore(
+        dayData,
+        mountain.elevation
+      );
+      dayData.hiking = hikingAnalysis;
+
+      // Track best hiking day (skip today for "best day" badge)
+      if (i > 0 && hikingAnalysis.score > bestHikingScore) {
+        bestHikingScore = hikingAnalysis.score;
+        bestHikingDay = i;
+      }
+
+      sevenDayForecast.push(dayData);
+    }
 
     return {
       mountain: mountain.name,
@@ -164,17 +194,19 @@ class WeatherApp {
         icon: currentWeather.icon,
       },
       today: {
-        high: Math.round(forecast.daily.temperature_2m_max[todayIndex]),
-        low: Math.round(forecast.daily.temperature_2m_min[todayIndex]),
+        high: sevenDayForecast[0].high,
+        low: sevenDayForecast[0].low,
       },
       tomorrow: {
-        high: Math.round(forecast.daily.temperature_2m_max[tomorrowIndex]),
-        low: Math.round(forecast.daily.temperature_2m_min[tomorrowIndex]),
+        high: sevenDayForecast[1].high,
+        low: sevenDayForecast[1].low,
       },
       dayAfter: {
-        high: Math.round(forecast.daily.temperature_2m_max[dayAfterIndex]),
-        low: Math.round(forecast.daily.temperature_2m_min[dayAfterIndex]),
+        high: sevenDayForecast[2].high,
+        low: sevenDayForecast[2].low,
       },
+      sevenDayForecast: sevenDayForecast,
+      bestHikingDay: bestHikingDay,
     };
   }
 
@@ -268,6 +300,145 @@ class WeatherApp {
     );
   }
 
+  calculateHikingScore(dayData, elevation) {
+    let score = 100; // Start with perfect score
+    const positives = [];
+    const warnings = [];
+
+    // Temperature scoring (ideal range: 45-75°F at summit)
+    const avgTemp = (dayData.high + dayData.low) / 2;
+    if (avgTemp >= 45 && avgTemp <= 75) {
+      positives.push("Comfortable temperatures");
+    } else if (avgTemp < 32) {
+      score -= 30;
+      warnings.push("Freezing temperatures expected");
+    } else if (avgTemp < 45) {
+      score -= 15;
+      warnings.push("Cold conditions");
+    } else if (avgTemp > 85) {
+      score -= 20;
+      warnings.push("Very hot conditions");
+    }
+
+    // Precipitation scoring
+    if (dayData.precipitation === 0) {
+      positives.push("No precipitation expected");
+    } else if (dayData.precipitation < 0.1) {
+      score -= 5;
+      positives.push("Minimal precipitation");
+    } else if (dayData.precipitation < 0.25) {
+      score -= 15;
+      warnings.push("Light precipitation possible");
+    } else if (dayData.precipitation < 0.5) {
+      score -= 25;
+      warnings.push("Moderate precipitation expected");
+    } else {
+      score -= 40;
+      warnings.push("Heavy precipitation expected");
+    }
+
+    // Wind scoring (14ers are exposed!)
+    if (dayData.windSpeed <= 15) {
+      positives.push("Light winds");
+    } else if (dayData.windSpeed <= 25) {
+      score -= 10;
+      warnings.push("Moderate winds");
+    } else if (dayData.windSpeed <= 35) {
+      score -= 25;
+      warnings.push("Strong winds expected");
+    } else {
+      score -= 40;
+      warnings.push("Dangerous wind conditions");
+    }
+
+    // Cloud cover scoring (affects views and lightning risk)
+    if (dayData.cloudCover <= 25) {
+      positives.push("Clear skies expected");
+    } else if (dayData.cloudCover <= 50) {
+      positives.push("Partly cloudy conditions");
+    } else if (dayData.cloudCover <= 75) {
+      score -= 10;
+      warnings.push("Mostly cloudy");
+    } else {
+      score -= 15;
+      warnings.push("Overcast conditions");
+    }
+
+    // Weather condition specific adjustments
+    switch (dayData.condition) {
+      case "Clear":
+        positives.push("Excellent visibility");
+        break;
+      case "Thunderstorm":
+        score -= 50;
+        warnings.push("Thunderstorm risk - avoid exposed peaks");
+        break;
+      case "Snow":
+        score -= 30;
+        warnings.push("Snow conditions - bring appropriate gear");
+        break;
+      case "Rain":
+        score -= 20;
+        warnings.push("Wet conditions expected");
+        break;
+      case "Fog":
+        score -= 25;
+        warnings.push("Poor visibility conditions");
+        break;
+    }
+
+    // Elevation adjustments (higher peaks = harsher conditions)
+    if (elevation > 14200) {
+      score -= 5;
+      warnings.push("Very high elevation - extra caution needed");
+    }
+
+    // Ensure score stays within bounds
+    score = Math.max(0, Math.min(100, score));
+
+    // Determine category and rating
+    let category, rating;
+    if (score >= 80) {
+      category = "excellent";
+      rating = "Excellent";
+    } else if (score >= 65) {
+      category = "good";
+      rating = "Good";
+    } else if (score >= 45) {
+      category = "fair";
+      rating = "Fair";
+    } else if (score >= 25) {
+      category = "poor";
+      rating = "Poor";
+    } else {
+      category = "dangerous";
+      rating = "Dangerous";
+    }
+
+    // Generate summary
+    let summary;
+    if (score >= 80) {
+      summary = "Perfect conditions for hiking this 14er!";
+    } else if (score >= 65) {
+      summary = "Good hiking conditions with minor concerns.";
+    } else if (score >= 45) {
+      summary = "Acceptable conditions but be prepared.";
+    } else if (score >= 25) {
+      summary = "Challenging conditions - consider postponing.";
+    } else {
+      summary = "Dangerous conditions - do not attempt.";
+    }
+
+    return {
+      score: Math.round(score),
+      category,
+      rating,
+      summary,
+      positives,
+      warnings,
+    };
+  }
+
   filterData(searchTerm) {
     if (!searchTerm.trim()) {
       this.filteredData = [...this.weatherData];
@@ -345,24 +516,8 @@ class WeatherApp {
         mountain.current.windDirection
       );
 
-      // Get day names for forecast
-      const today = new Date();
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const dayAfter = new Date(today);
-      dayAfter.setDate(dayAfter.getDate() + 2);
-
-      const dayNames = [
-        "Sunday",
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-      ];
-      const tomorrowName = dayNames[tomorrow.getDay()];
-      const dayAfterName = dayNames[dayAfter.getDay()];
+      // Generate 7-day forecast HTML
+      const sevenDayForecastHtml = this.generateSevenDayForecast(mountain);
 
       card.innerHTML = `
         <div class="card-header">
@@ -412,33 +567,192 @@ class WeatherApp {
           <div class="wind-description">${windDescription}</div>
         </div>
         
-        <div class="forecasts">
-          <div class="forecast-row">
-            <span class="forecast-day">Today</span>
-            <span class="forecast-temps">
-              <span class="high-temp">${mountain.today.high}°</span>
-              <span class="low-temp">${mountain.today.low}°</span>
-            </span>
-          </div>
-          <div class="forecast-row">
-            <span class="forecast-day">${tomorrowName}</span>
-            <span class="forecast-temps">
-              <span class="high-temp">${mountain.tomorrow.high}°</span>
-              <span class="low-temp">${mountain.tomorrow.low}°</span>
-            </span>
-          </div>
-          <div class="forecast-row">
-            <span class="forecast-day">${dayAfterName}</span>
-            <span class="forecast-temps">
-              <span class="high-temp">${mountain.dayAfter.high}°</span>
-              <span class="low-temp">${mountain.dayAfter.low}°</span>
-            </span>
-          </div>
-        </div>
+        ${sevenDayForecastHtml}
       `;
     }
 
     return card;
+  }
+
+  generateSevenDayForecast(mountain) {
+    if (!mountain.sevenDayForecast) {
+      // Fallback to old 3-day format if new data not available
+      return this.generateLegacyForecast(mountain);
+    }
+
+    const today = new Date();
+    const dayNames = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+
+    const forecastId = `forecast-${mountain.mountain
+      .replace(/\s+/g, "-")
+      .toLowerCase()}`;
+
+    let forecastHtml = '<div class="seven-day-forecast">';
+    forecastHtml += `
+      <div class="forecast-header clickable" onclick="this.parentElement.querySelector('.forecast-content').classList.toggle('collapsed'); this.querySelector('.chevron').classList.toggle('expanded');">
+        <span>7-Day Forecast & Hiking Conditions</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="forecast-content collapsed" id="${forecastId}">
+    `;
+
+    mountain.sevenDayForecast.forEach((day, index) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() + index);
+      const dayName =
+        index === 0
+          ? "Today"
+          : index === 1
+          ? "Tomorrow"
+          : dayNames[date.getDay()];
+
+      const isBestDay = index === mountain.bestHikingDay && index > 0;
+      const hiking = day.hiking;
+
+      forecastHtml += `
+        <div class="forecast-day ${isBestDay ? "best-hiking-day" : ""} hiking-${
+        hiking.category
+      }">
+          <div class="forecast-day-header">
+            <div class="day-info">
+              <span class="day-name">${dayName}</span>
+              ${
+                isBestDay
+                  ? '<span class="best-day-badge">🥾 Best for Hiking!</span>'
+                  : ""
+              }
+            </div>
+            <div class="day-temps">
+              <span class="high-temp">${day.high}°</span> / 
+              <span class="low-temp">${day.low}°</span>
+            </div>
+          </div>
+          
+          <div class="forecast-details">
+            <div class="weather-summary">
+              <span class="weather-icon-small">${this.getWeatherEmoji(
+                day.condition
+              )}</span>
+              <span class="weather-desc">${day.description}</span>
+            </div>
+            
+            <div class="conditions-grid">
+              <div class="condition-item">
+                <span class="condition-icon">💧</span>
+                <span>${day.precipitation.toFixed(1)}"</span>
+              </div>
+              <div class="condition-item">
+                <span class="condition-icon">💨</span>
+                <span>${day.windSpeed} mph</span>
+              </div>
+              <div class="condition-item">
+                <span class="condition-icon">☁️</span>
+                <span>${day.cloudCover}%</span>
+              </div>
+            </div>
+            
+            <div class="hiking-assessment">
+              <div class="hiking-score">
+                <span class="score-label">Hiking Score:</span>
+                <span class="score-value score-${hiking.category}">${
+        hiking.score
+      }/100</span>
+                <span class="score-rating">${hiking.rating}</span>
+              </div>
+              <div class="hiking-summary">${hiking.summary}</div>
+              ${this.generateHikingDetails(hiking)}
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    forecastHtml += "</div>"; // Close forecast-content
+    forecastHtml += "</div>"; // Close seven-day-forecast
+    return forecastHtml;
+  }
+
+  generateHikingDetails(hiking) {
+    let detailsHtml = "";
+
+    if (hiking.positives.length > 0 || hiking.warnings.length > 0) {
+      detailsHtml += '<div class="hiking-details">';
+
+      if (hiking.positives.length > 0) {
+        detailsHtml += '<div class="hiking-positives">';
+        hiking.positives.forEach((positive) => {
+          detailsHtml += `<div class="hiking-point positive">✅ ${positive}</div>`;
+        });
+        detailsHtml += "</div>";
+      }
+
+      if (hiking.warnings.length > 0) {
+        detailsHtml += '<div class="hiking-warnings">';
+        hiking.warnings.forEach((warning) => {
+          detailsHtml += `<div class="hiking-point warning">⚠️ ${warning}</div>`;
+        });
+        detailsHtml += "</div>";
+      }
+
+      detailsHtml += "</div>";
+    }
+
+    return detailsHtml;
+  }
+
+  generateLegacyForecast(mountain) {
+    // Keep old 3-day format for backwards compatibility
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const dayAfter = new Date(today);
+    dayAfter.setDate(dayAfter.getDate() + 2);
+
+    const dayNames = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    const tomorrowName = dayNames[tomorrow.getDay()];
+    const dayAfterName = dayNames[dayAfter.getDay()];
+
+    return `
+      <div class="forecasts">
+        <div class="forecast-row">
+          <span class="forecast-day">Today</span>
+          <span class="forecast-temps">
+            <span class="high-temp">${mountain.today.high}°</span> / 
+            <span class="low-temp">${mountain.today.low}°</span>
+          </span>
+        </div>
+        <div class="forecast-row">
+          <span class="forecast-day">${tomorrowName}</span>
+          <span class="forecast-temps">
+            <span class="high-temp">${mountain.tomorrow.high}°</span> / 
+            <span class="low-temp">${mountain.tomorrow.low}°</span>
+          </span>
+        </div>
+        <div class="forecast-row">
+          <span class="forecast-day">${dayAfterName}</span>
+          <span class="forecast-temps">
+            <span class="high-temp">${mountain.dayAfter.high}°</span> / 
+            <span class="low-temp">${mountain.dayAfter.low}°</span>
+          </span>
+        </div>
+      </div>
+    `;
   }
 
   getWeatherEmoji(condition) {
