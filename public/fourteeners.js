@@ -80,7 +80,10 @@ const coloradoFourteeners = [
   { name: "Mount Tyndall", elevation: 13370, lat: 38.8461, lon: -105.0822 },
 ];
 
+// Create alias for backward compatibility
+const fourteeners = coloradoFourteeners;
+
 // Export for use in other modules
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = fourteeners;
+  module.exports = coloradoFourteeners;
 }

@@ -1,12 +1,12 @@
 # Colorado 14ers Weather App
 
-A comprehensive weather application that displays current conditions, today's high/low temperatures, and tomorrow's forecast for all 59 Colorado peaks above 14,000 feet.
+A comprehensive weather application that displays current conditions and a 3-day forecast for all 59 Colorado peaks above 14,000 feet.
 
 ## Features
 
 - **Complete 14ers Database**: All 59 Colorado fourteeners with accurate coordinates and elevations
 - **Real-time Weather Data**: Current temperature, conditions, humidity, wind speed, and visibility
-- **Today & Tomorrow Forecasts**: High and low temperatures for today and tomorrow
+- **3-Day Weather Forecast**: High and low temperatures for today, tomorrow, and the day after
 - **Interactive Search**: Find specific mountains quickly
 - **FREE Weather Data**: No API keys or configuration required!
 

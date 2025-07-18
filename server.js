@@ -164,10 +164,11 @@ class WeatherService {
         current.current.weather_code
       );
 
-      // Get today's and tomorrow's forecast
+      // Get today's, tomorrow's, and day after tomorrow's forecast
       const today = new Date();
       const todayIndex = 0; // Today is always the first day in the forecast
       const tomorrowIndex = 1; // Tomorrow is the second day
+      const dayAfterIndex = 2; // Day after tomorrow is the third day
 
       return {
         mountain: mountain.name,
@@ -195,6 +196,10 @@ class WeatherService {
         tomorrow: {
           high: Math.round(forecast.daily.temperature_2m_max[tomorrowIndex]),
           low: Math.round(forecast.daily.temperature_2m_min[tomorrowIndex]),
+        },
+        dayAfter: {
+          high: Math.round(forecast.daily.temperature_2m_max[dayAfterIndex]),
+          low: Math.round(forecast.daily.temperature_2m_min[dayAfterIndex]),
         },
       };
     } catch (error) {

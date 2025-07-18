@@ -139,9 +139,10 @@ class WeatherApp {
       current.current.weather_code
     );
 
-    // Get today's and tomorrow's forecast
+    // Get today's, tomorrow's, and day after tomorrow's forecast
     const todayIndex = 0;
     const tomorrowIndex = 1;
+    const dayAfterIndex = 2;
 
     return {
       mountain: mountain.name,
@@ -169,6 +170,10 @@ class WeatherApp {
       tomorrow: {
         high: Math.round(forecast.daily.temperature_2m_max[tomorrowIndex]),
         low: Math.round(forecast.daily.temperature_2m_min[tomorrowIndex]),
+      },
+      dayAfter: {
+        high: Math.round(forecast.daily.temperature_2m_max[dayAfterIndex]),
+        low: Math.round(forecast.daily.temperature_2m_min[dayAfterIndex]),
       },
     };
   }
@@ -340,6 +345,25 @@ class WeatherApp {
         mountain.current.windDirection
       );
 
+      // Get day names for forecast
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const dayAfter = new Date(today);
+      dayAfter.setDate(dayAfter.getDate() + 2);
+
+      const dayNames = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ];
+      const tomorrowName = dayNames[tomorrow.getDay()];
+      const dayAfterName = dayNames[dayAfter.getDay()];
+
       card.innerHTML = `
         <div class="card-header">
           <div>
@@ -397,10 +421,17 @@ class WeatherApp {
             </span>
           </div>
           <div class="forecast-row">
-            <span class="forecast-day">Tomorrow</span>
+            <span class="forecast-day">${tomorrowName}</span>
             <span class="forecast-temps">
               <span class="high-temp">${mountain.tomorrow.high}°</span>
               <span class="low-temp">${mountain.tomorrow.low}°</span>
+            </span>
+          </div>
+          <div class="forecast-row">
+            <span class="forecast-day">${dayAfterName}</span>
+            <span class="forecast-temps">
+              <span class="high-temp">${mountain.dayAfter.high}°</span>
+              <span class="low-temp">${mountain.dayAfter.low}°</span>
             </span>
           </div>
         </div>

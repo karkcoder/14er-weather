@@ -171,16 +171,49 @@ class WeatherApp {
 
   createWeatherCard(mountain) {
     const windInfo = this.formatWindDisplay(mountain);
+
+    // Get day names for forecast
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const dayAfter = new Date(today);
+    dayAfter.setDate(dayAfter.getDate() + 2);
+
+    const dayNames = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    const tomorrowName = dayNames[tomorrow.getDay()];
+    const dayAfterName = dayNames[dayAfter.getDay()];
+
     const tomorrowForecast =
       mountain.tomorrow.high !== null && mountain.tomorrow.low !== null
         ? `<div class="forecast-row">
-                <span class="forecast-day">Tomorrow</span>
+                <span class="forecast-day">${tomorrowName}</span>
                 <span class="forecast-temps">
                     <span class="high-temp">${mountain.tomorrow.high}°</span> / 
                     <span class="low-temp">${mountain.tomorrow.low}°</span>
                 </span>
             </div>`
-        : '<div class="forecast-row"><span class="forecast-day">Tomorrow</span><span class="forecast-temps">No data</span></div>';
+        : `<div class="forecast-row"><span class="forecast-day">${tomorrowName}</span><span class="forecast-temps">No data</span></div>`;
+
+    const dayAfterForecast =
+      mountain.dayAfter &&
+      mountain.dayAfter.high !== null &&
+      mountain.dayAfter.low !== null
+        ? `<div class="forecast-row">
+                <span class="forecast-day">${dayAfterName}</span>
+                <span class="forecast-temps">
+                    <span class="high-temp">${mountain.dayAfter.high}°</span> / 
+                    <span class="low-temp">${mountain.dayAfter.low}°</span>
+                </span>
+            </div>`
+        : `<div class="forecast-row"><span class="forecast-day">${dayAfterName}</span><span class="forecast-temps">No data</span></div>`;
 
     return `
             <div class="weather-card">
@@ -243,6 +276,7 @@ class WeatherApp {
                         </span>
                     </div>
                     ${tomorrowForecast}
+                    ${dayAfterForecast}
                 </div>
             </div>
         `;
