@@ -18,6 +18,37 @@ This app now uses **Open-Meteo** - a completely free weather API that requires n
 - ✅ **No Configuration** - Works immediately without setup
 - ✅ **High Quality Data** - European weather model data
 - ✅ **Mountain Weather** - Excellent for high-altitude locations
+
+## Running the Static Version
+
+After building the static version with `./build-static.sh`, you have several options:
+
+### Option 1: Node.js Server (Recommended)
+
+```bash
+./run-static.sh
+```
+
+Then open http://localhost:3000
+
+### Option 2: Python HTTP Server
+
+```bash
+./run-python-server.sh
+```
+
+Then open http://localhost:8080
+
+### Option 3: Manual Server Start
+
+```bash
+cd build
+npm install  # First time only
+npm start    # Starts Node.js server on port 3000
+```
+
+**Important:** Don't open the HTML file directly in your browser using `file://` - this will show "Loading..." forever due to CORS restrictions. Always use a local HTTP server.
+
 - ✅ **Reliable** - Professional-grade weather service
 
 ## Quick Start

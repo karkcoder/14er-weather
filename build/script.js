@@ -2,7 +2,7 @@ class WeatherApp {
   constructor() {
     this.weatherData = [];
     this.filteredData = [];
-    this.currentTheme = localStorage.getItem('theme') || 'light';
+    this.currentTheme = localStorage.getItem("theme") || "light";
     this.init();
   }
 
@@ -13,25 +13,25 @@ class WeatherApp {
   }
 
   initTheme() {
-    document.documentElement.setAttribute('data-theme', this.currentTheme);
+    document.documentElement.setAttribute("data-theme", this.currentTheme);
     this.updateThemeIcon();
   }
 
   toggleTheme() {
-    this.currentTheme = this.currentTheme === 'light' ? 'dark' : 'light';
-    document.documentElement.setAttribute('data-theme', this.currentTheme);
-    localStorage.setItem('theme', this.currentTheme);
+    this.currentTheme = this.currentTheme === "light" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", this.currentTheme);
+    localStorage.setItem("theme", this.currentTheme);
     this.updateThemeIcon();
   }
 
   updateThemeIcon() {
-    const themeIcon = document.querySelector('.theme-icon');
-    themeIcon.textContent = this.currentTheme === 'light' ? '🌙' : '☀️';
+    const themeIcon = document.querySelector(".theme-icon");
+    themeIcon.textContent = this.currentTheme === "light" ? "🌙" : "☀️";
   }
 
   setupEventListeners() {
     // Theme toggle
-    document.getElementById('themeToggle').addEventListener('click', () => {
+    document.getElementById("themeToggle").addEventListener("click", () => {
       this.toggleTheme();
     });
 
@@ -74,7 +74,9 @@ class WeatherApp {
       this.showLoading();
       this.hideError();
 
-      console.log('Fetching weather data for all 14ers using Open-Meteo API...');
+      console.log(
+        "Fetching weather data for all 14ers using Open-Meteo API..."
+      );
 
       // Fetch weather for all mountains with rate limiting
       const weatherPromises = fourteeners.map((mountain, index) => {
@@ -89,7 +91,7 @@ class WeatherApp {
       this.weatherData = await Promise.all(weatherPromises);
       this.filteredData = [...this.weatherData];
 
-      console.log('Weather data fetched successfully');
+      console.log("Weather data fetched successfully");
       this.hideLoading();
       this.renderWeatherCards();
     } catch (error) {
@@ -102,12 +104,16 @@ class WeatherApp {
   async getWeatherForMountain(mountain) {
     try {
       const [currentResponse, forecastResponse] = await Promise.all([
-        fetch(`https://api.open-meteo.com/v1/forecast?latitude=${mountain.lat}&longitude=${mountain.lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Denver`),
-        fetch(`https://api.open-meteo.com/v1/forecast?latitude=${mountain.lat}&longitude=${mountain.lon}&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_sum,wind_speed_10m_max,wind_direction_10m_dominant&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Denver&forecast_days=3`)
+        fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${mountain.lat}&longitude=${mountain.lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Denver`
+        ),
+        fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${mountain.lat}&longitude=${mountain.lon}&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_sum,wind_speed_10m_max,wind_direction_10m_dominant&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Denver&forecast_days=3`
+        ),
       ]);
 
       if (!currentResponse.ok || !forecastResponse.ok) {
-        throw new Error('Failed to fetch weather data');
+        throw new Error("Failed to fetch weather data");
       }
 
       const current = await currentResponse.json();
@@ -115,7 +121,10 @@ class WeatherApp {
 
       return this.formatWeatherData(mountain, current, forecast);
     } catch (error) {
-      console.error(`Error getting weather for ${mountain.name}:`, error.message);
+      console.error(
+        `Error getting weather for ${mountain.name}:`,
+        error.message
+      );
       return {
         mountain: mountain.name,
         elevation: mountain.elevation,
@@ -126,7 +135,9 @@ class WeatherApp {
 
   formatWeatherData(mountain, current, forecast) {
     // Get current weather info
-    const currentWeather = this.getWeatherDescription(current.current.weather_code);
+    const currentWeather = this.getWeatherDescription(
+      current.current.weather_code
+    );
 
     // Get today's and tomorrow's forecast
     const todayIndex = 0;
@@ -172,34 +183,84 @@ class WeatherApp {
       45: { description: "Fog", condition: "Fog", icon: "50d" },
       48: { description: "Depositing rime fog", condition: "Fog", icon: "50d" },
       51: { description: "Light drizzle", condition: "Drizzle", icon: "09d" },
-      53: { description: "Moderate drizzle", condition: "Drizzle", icon: "09d" },
+      53: {
+        description: "Moderate drizzle",
+        condition: "Drizzle",
+        icon: "09d",
+      },
       55: { description: "Dense drizzle", condition: "Drizzle", icon: "09d" },
-      56: { description: "Light freezing drizzle", condition: "Drizzle", icon: "09d" },
-      57: { description: "Dense freezing drizzle", condition: "Drizzle", icon: "09d" },
+      56: {
+        description: "Light freezing drizzle",
+        condition: "Drizzle",
+        icon: "09d",
+      },
+      57: {
+        description: "Dense freezing drizzle",
+        condition: "Drizzle",
+        icon: "09d",
+      },
       61: { description: "Slight rain", condition: "Rain", icon: "10d" },
       63: { description: "Moderate rain", condition: "Rain", icon: "10d" },
       65: { description: "Heavy rain", condition: "Rain", icon: "10d" },
-      66: { description: "Light freezing rain", condition: "Rain", icon: "10d" },
-      67: { description: "Heavy freezing rain", condition: "Rain", icon: "10d" },
+      66: {
+        description: "Light freezing rain",
+        condition: "Rain",
+        icon: "10d",
+      },
+      67: {
+        description: "Heavy freezing rain",
+        condition: "Rain",
+        icon: "10d",
+      },
       71: { description: "Slight snow fall", condition: "Snow", icon: "13d" },
       73: { description: "Moderate snow fall", condition: "Snow", icon: "13d" },
       75: { description: "Heavy snow fall", condition: "Snow", icon: "13d" },
       77: { description: "Snow grains", condition: "Snow", icon: "13d" },
-      80: { description: "Slight rain showers", condition: "Rain", icon: "09d" },
-      81: { description: "Moderate rain showers", condition: "Rain", icon: "09d" },
-      82: { description: "Violent rain showers", condition: "Rain", icon: "09d" },
-      85: { description: "Slight snow showers", condition: "Snow", icon: "13d" },
+      80: {
+        description: "Slight rain showers",
+        condition: "Rain",
+        icon: "09d",
+      },
+      81: {
+        description: "Moderate rain showers",
+        condition: "Rain",
+        icon: "09d",
+      },
+      82: {
+        description: "Violent rain showers",
+        condition: "Rain",
+        icon: "09d",
+      },
+      85: {
+        description: "Slight snow showers",
+        condition: "Snow",
+        icon: "13d",
+      },
       86: { description: "Heavy snow showers", condition: "Snow", icon: "13d" },
-      95: { description: "Thunderstorm", condition: "Thunderstorm", icon: "11d" },
-      96: { description: "Thunderstorm with slight hail", condition: "Thunderstorm", icon: "11d" },
-      99: { description: "Thunderstorm with heavy hail", condition: "Thunderstorm", icon: "11d" },
+      95: {
+        description: "Thunderstorm",
+        condition: "Thunderstorm",
+        icon: "11d",
+      },
+      96: {
+        description: "Thunderstorm with slight hail",
+        condition: "Thunderstorm",
+        icon: "11d",
+      },
+      99: {
+        description: "Thunderstorm with heavy hail",
+        condition: "Thunderstorm",
+        icon: "11d",
+      },
     };
 
-    return weatherCodes[code] || {
-      description: "Unknown",
-      condition: "Unknown",
-      icon: "01d",
-    };
+    return (
+      weatherCodes[code] || {
+        description: "Unknown",
+        condition: "Unknown",
+        icon: "01d",
+      }
+    );
   }
 
   filterData(searchTerm) {
@@ -275,8 +336,10 @@ class WeatherApp {
         </div>
       `;
     } else {
-      const windDescription = this.getWindDescription(mountain.current.windDirection);
-      
+      const windDescription = this.getWindDescription(
+        mountain.current.windDirection
+      );
+
       card.innerHTML = `
         <div class="card-header">
           <div>
@@ -304,18 +367,24 @@ class WeatherApp {
           </div>
           <div class="detail-item">
             <span class="detail-label">Wind:</span>
-            <span class="detail-value wind-value">${mountain.current.windSpeed} mph</span>
+            <span class="detail-value wind-value">${
+              mountain.current.windSpeed
+            } mph</span>
           </div>
           <div class="detail-item">
             <span class="detail-label">Visibility:</span>
             <span class="detail-value">${mountain.current.visibility} mi</span>
           </div>
-          ${mountain.current.windGusts ? `
+          ${
+            mountain.current.windGusts
+              ? `
             <div class="detail-item">
               <span class="detail-label">Gusts:</span>
               <span class="detail-value">${mountain.current.windGusts} mph</span>
             </div>
-          ` : ''}
+          `
+              : ""
+          }
           <div class="wind-description">${windDescription}</div>
         </div>
         
@@ -356,12 +425,26 @@ class WeatherApp {
 
   getWindDescription(direction) {
     if (direction === null || direction === undefined) return "Variable";
-    
+
     const directions = [
-      "North", "NNE", "NE", "ENE", "East", "ESE", "SE", "SSE",
-      "South", "SSW", "SW", "WSW", "West", "WNW", "NW", "NNW"
+      "North",
+      "NNE",
+      "NE",
+      "ENE",
+      "East",
+      "ESE",
+      "SE",
+      "SSE",
+      "South",
+      "SSW",
+      "SW",
+      "WSW",
+      "West",
+      "WNW",
+      "NW",
+      "NNW",
     ];
-    
+
     const index = Math.round(direction / 22.5) % 16;
     return `${directions[index]} wind`;
   }

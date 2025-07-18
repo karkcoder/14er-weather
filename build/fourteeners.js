@@ -1,6 +1,8 @@
 // Colorado 14ers with their coordinates and elevations
 // This list includes all 58 peaks over 14,000 feet (including those with <300ft prominence)
-const fourteeners = [
+// Colorado 14ers with their coordinates and elevations
+// This list includes all 59 peaks over 14,000 feet (including those with <300ft prominence)
+const coloradoFourteeners = [
   { name: "Mount Elbert", elevation: 14440, lat: 39.1178, lon: -106.4453 },
   { name: "Mount Massive", elevation: 14428, lat: 39.1875, lon: -106.4757 },
   { name: "Mount Harvard", elevation: 14421, lat: 38.9244, lon: -106.3207 },
@@ -24,7 +26,12 @@ const fourteeners = [
   { name: "Mount Princeton", elevation: 14204, lat: 38.7492, lon: -106.2425 },
   { name: "Mount Yale", elevation: 14196, lat: 38.8442, lon: -106.3142 },
   { name: "Mount Bross", elevation: 14178, lat: 39.3348, lon: -106.1079 },
-  { name: "Kit Carson Mountain", elevation: 14165, lat: 37.9795, lon: -105.6024 },
+  {
+    name: "Kit Carson Mountain",
+    elevation: 14165,
+    lat: 37.9795,
+    lon: -105.6024,
+  },
   { name: "Maroon Peak", elevation: 14163, lat: 39.0708, lon: -106.989 },
   { name: "Tabeguache Peak", elevation: 14162, lat: 38.6256, lon: -106.2506 },
   { name: "Mount Oxford", elevation: 14160, lat: 38.9648, lon: -106.3381 },
@@ -52,18 +59,28 @@ const fourteeners = [
   { name: "Wetterhorn Peak", elevation: 14021, lat: 38.0608, lon: -107.5108 },
   { name: "North Maroon Peak", elevation: 14019, lat: 39.0767, lon: -106.9833 },
   { name: "San Luis Peak", elevation: 14014, lat: 37.9867, lon: -106.9314 },
-  { name: "Mount of the Holy Cross", elevation: 14009, lat: 39.4669, lon: -106.4819 },
+  {
+    name: "Mount of the Holy Cross",
+    elevation: 14009,
+    lat: 39.4669,
+    lon: -106.4819,
+  },
   { name: "Huron Peak", elevation: 14003, lat: 38.9453, lon: -106.4378 },
   { name: "Sunshine Peak", elevation: 14001, lat: 38.0597, lon: -107.4256 },
   { name: "Mount Audubon", elevation: 13223, lat: 40.0458, lon: -105.543 },
   { name: "Mount Meeker", elevation: 13911, lat: 40.2408, lon: -105.6169 },
-  { name: "Mount Lady Washington", elevation: 13281, lat: 40.2456, lon: -105.6322 },
+  {
+    name: "Mount Lady Washington",
+    elevation: 13281,
+    lat: 40.2456,
+    lon: -105.6322,
+  },
   { name: "Mount Spalding", elevation: 13842, lat: 39.5842, lon: -105.6272 },
   { name: "Mount Rosa", elevation: 11499, lat: 38.8347, lon: -105.0419 },
-  { name: "Mount Tyndall", elevation: 13370, lat: 38.8461, lon: -105.0822 }
+  { name: "Mount Tyndall", elevation: 13370, lat: 38.8461, lon: -105.0822 },
 ];
 
 // Export for use in other modules
-if (typeof module !== 'undefined' && module.exports) {
+if (typeof module !== "undefined" && module.exports) {
   module.exports = fourteeners;
 }
