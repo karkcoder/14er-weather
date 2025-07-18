@@ -172,48 +172,8 @@ class WeatherApp {
   createWeatherCard(mountain) {
     const windInfo = this.formatWindDisplay(mountain);
 
-    // Get day names for forecast
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const dayAfter = new Date(today);
-    dayAfter.setDate(dayAfter.getDate() + 2);
-
-    const dayNames = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-    ];
-    const tomorrowName = dayNames[tomorrow.getDay()];
-    const dayAfterName = dayNames[dayAfter.getDay()];
-
-    const tomorrowForecast =
-      mountain.tomorrow.high !== null && mountain.tomorrow.low !== null
-        ? `<div class="forecast-row">
-                <span class="forecast-day">${tomorrowName}</span>
-                <span class="forecast-temps">
-                    <span class="high-temp">${mountain.tomorrow.high}°</span> / 
-                    <span class="low-temp">${mountain.tomorrow.low}°</span>
-                </span>
-            </div>`
-        : `<div class="forecast-row"><span class="forecast-day">${tomorrowName}</span><span class="forecast-temps">No data</span></div>`;
-
-    const dayAfterForecast =
-      mountain.dayAfter &&
-      mountain.dayAfter.high !== null &&
-      mountain.dayAfter.low !== null
-        ? `<div class="forecast-row">
-                <span class="forecast-day">${dayAfterName}</span>
-                <span class="forecast-temps">
-                    <span class="high-temp">${mountain.dayAfter.high}°</span> / 
-                    <span class="low-temp">${mountain.dayAfter.low}°</span>
-                </span>
-            </div>`
-        : `<div class="forecast-row"><span class="forecast-day">${dayAfterName}</span><span class="forecast-temps">No data</span></div>`;
+    // Generate 7-day forecast HTML
+    const sevenDayForecastHtml = this.generateSevenDayForecast(mountain);
 
     return `
             <div class="weather-card">
@@ -265,21 +225,193 @@ class WeatherApp {
                     </div>
                 </div>
                 
-                <div class="forecasts">
-                    <div class="forecast-row">
-                        <span class="forecast-day">Today</span>
-                        <span class="forecast-temps">
-                            <span class="high-temp">${
-                              mountain.today.high
-                            }°</span> / 
-                            <span class="low-temp">${mountain.today.low}°</span>
-                        </span>
-                    </div>
-                    ${tomorrowForecast}
-                    ${dayAfterForecast}
-                </div>
+                ${sevenDayForecastHtml}
             </div>
         `;
+  }
+
+  generateSevenDayForecast(mountain) {
+    if (!mountain.sevenDayForecast) {
+      // Fallback to old 3-day format if new data not available
+      return this.generateLegacyForecast(mountain);
+    }
+
+    const today = new Date();
+    const dayNames = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+
+    let forecastHtml = '<div class="seven-day-forecast">';
+    forecastHtml +=
+      '<div class="forecast-header">7-Day Forecast & Hiking Conditions</div>';
+
+    mountain.sevenDayForecast.forEach((day, index) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() + index);
+      const dayName =
+        index === 0
+          ? "Today"
+          : index === 1
+          ? "Tomorrow"
+          : dayNames[date.getDay()];
+
+      const isBestDay = index === mountain.bestHikingDay && index > 0;
+      const hiking = day.hiking;
+
+      forecastHtml += `
+        <div class="forecast-day ${isBestDay ? "best-hiking-day" : ""} hiking-${
+        hiking.category
+      }">
+          <div class="forecast-day-header">
+            <div class="day-info">
+              <span class="day-name">${dayName}</span>
+              ${
+                isBestDay
+                  ? '<span class="best-day-badge">🥾 Best for Hiking!</span>'
+                  : ""
+              }
+            </div>
+            <div class="day-temps">
+              <span class="high-temp">${day.high}°</span> / 
+              <span class="low-temp">${day.low}°</span>
+            </div>
+          </div>
+          
+          <div class="forecast-details">
+            <div class="weather-summary">
+              <span class="weather-icon-small">${this.getWeatherEmoji(
+                day.condition,
+                day.icon
+              )}</span>
+              <span class="weather-desc">${day.description}</span>
+            </div>
+            
+            <div class="conditions-grid">
+              <div class="condition-item">
+                <span class="condition-icon">💧</span>
+                <span>${day.precipitation}"</span>
+              </div>
+              <div class="condition-item">
+                <span class="condition-icon">💨</span>
+                <span>${day.windSpeed} mph</span>
+              </div>
+              <div class="condition-item">
+                <span class="condition-icon">☁️</span>
+                <span>${day.cloudCover}%</span>
+              </div>
+            </div>
+            
+            <div class="hiking-assessment">
+              <div class="hiking-score">
+                <span class="score-label">Hiking Score:</span>
+                <span class="score-value score-${hiking.category}">${
+        hiking.score
+      }/100</span>
+                <span class="score-rating">${hiking.rating}</span>
+              </div>
+              <div class="hiking-summary">${hiking.summary}</div>
+              ${this.generateHikingDetails(hiking)}
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    forecastHtml += "</div>";
+    return forecastHtml;
+  }
+
+  generateHikingDetails(hiking) {
+    let detailsHtml = "";
+
+    if (hiking.positives.length > 0 || hiking.warnings.length > 0) {
+      detailsHtml += '<div class="hiking-details">';
+
+      if (hiking.positives.length > 0) {
+        detailsHtml += '<div class="hiking-positives">';
+        hiking.positives.forEach((positive) => {
+          detailsHtml += `<div class="hiking-point positive">✅ ${positive}</div>`;
+        });
+        detailsHtml += "</div>";
+      }
+
+      if (hiking.warnings.length > 0) {
+        detailsHtml += '<div class="hiking-warnings">';
+        hiking.warnings.forEach((warning) => {
+          detailsHtml += `<div class="hiking-point warning">⚠️ ${warning}</div>`;
+        });
+        detailsHtml += "</div>";
+      }
+
+      detailsHtml += "</div>";
+    }
+
+    return detailsHtml;
+  }
+
+  generateLegacyForecast(mountain) {
+    // Keep old 3-day format for backwards compatibility
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const dayAfter = new Date(today);
+    dayAfter.setDate(dayAfter.getDate() + 2);
+
+    const dayNames = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    const tomorrowName = dayNames[tomorrow.getDay()];
+    const dayAfterName = dayNames[dayAfter.getDay()];
+
+    const tomorrowForecast =
+      mountain.tomorrow.high !== null && mountain.tomorrow.low !== null
+        ? `<div class="forecast-row">
+                <span class="forecast-day">${tomorrowName}</span>
+                <span class="forecast-temps">
+                    <span class="high-temp">${mountain.tomorrow.high}°</span> / 
+                    <span class="low-temp">${mountain.tomorrow.low}°</span>
+                </span>
+            </div>`
+        : `<div class="forecast-row"><span class="forecast-day">${tomorrowName}</span><span class="forecast-temps">No data</span></div>`;
+
+    const dayAfterForecast =
+      mountain.dayAfter &&
+      mountain.dayAfter.high !== null &&
+      mountain.dayAfter.low !== null
+        ? `<div class="forecast-row">
+                <span class="forecast-day">${dayAfterName}</span>
+                <span class="forecast-temps">
+                    <span class="high-temp">${mountain.dayAfter.high}°</span> / 
+                    <span class="low-temp">${mountain.dayAfter.low}°</span>
+                </span>
+            </div>`
+        : `<div class="forecast-row"><span class="forecast-day">${dayAfterName}</span><span class="forecast-temps">No data</span></div>`;
+
+    return `
+      <div class="forecasts">
+        <div class="forecast-row">
+          <span class="forecast-day">Today</span>
+          <span class="forecast-temps">
+            <span class="high-temp">${mountain.today.high}°</span> / 
+            <span class="low-temp">${mountain.today.low}°</span>
+          </span>
+        </div>
+        ${tomorrowForecast}
+        ${dayAfterForecast}
+      </div>
+    `;
   }
 
   createErrorCard(mountain) {

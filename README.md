@@ -1,14 +1,43 @@
 # Colorado 14ers Weather App
 
-A comprehensive weather application that displays current conditions and a 3-day forecast for all 59 Colorado peaks above 14,000 feet.
+A comprehensive weather application that displays current conditions and a 7-day forecast for all 59 Colorado peaks above 14,000 feet, with intelligent hiking condition analysis.
 
 ## Features
 
 - **Complete 14ers Database**: All 59 Colorado fourteeners with accurate coordinates and elevations
 - **Real-time Weather Data**: Current temperature, conditions, humidity, wind speed, and visibility
-- **3-Day Weather Forecast**: High and low temperatures for today, tomorrow, and the day after
+- **7-Day Weather Forecast**: Detailed weather forecast for the week ahead
+- **Smart Hiking Analysis**: AI-powered evaluation of hiking conditions for each day
+- **Best Day Highlighting**: Automatically identifies the optimal day for hiking each peak
 - **Interactive Search**: Find specific mountains quickly
 - **FREE Weather Data**: No API keys or configuration required!
+
+## Hiking Condition Analysis
+
+The app analyzes multiple weather factors to determine the best days for hiking 14ers:
+
+### **Evaluation Criteria**
+
+- **Temperature Range**: Ideal between 40-70°F, penalties for extreme cold/heat
+- **Precipitation**: Heavy penalties for rain/snow, bonus for dry conditions
+- **Wind Speed**: Critical for high-altitude safety, dangerous above 40mph
+- **Weather Conditions**: Severe penalties for thunderstorms, snow, heavy rain
+- **Cloud Cover**: Better scores for clear skies and good visibility
+- **Altitude-Specific**: Extra penalties for extreme conditions above 14,000ft
+
+### **Hiking Scores**
+
+- **Excellent (80-100)**: Perfect conditions for hiking
+- **Good (65-79)**: Good day with proper preparation
+- **Fair (45-64)**: Challenging conditions, experienced hikers only
+- **Poor (25-44)**: Not recommended for hiking
+- **Dangerous (0-24)**: Do not attempt - dangerous conditions
+
+### **Safety Features**
+
+- ⚠️ **Weather Warnings**: Alerts for dangerous conditions like thunderstorms, high winds
+- ✅ **Positive Indicators**: Highlights favorable conditions
+- 🥾 **Best Day Badge**: Clearly marks the optimal hiking day for each mountain
 
 ## Weather Data Source
 
