@@ -3,6 +3,8 @@ class WeatherApp {
     this.weatherData = [];
     this.filteredData = [];
     this.currentTheme = localStorage.getItem("theme") || "light";
+    this.loadedCount = 0;
+    this.totalCount = 0;
     this.init();
   }
 
@@ -74,8 +76,13 @@ class WeatherApp {
       this.showLoading();
       this.hideError();
 
+      // Reset counters
+      this.loadedCount = 0;
+      this.totalCount = fourteeners.length;
+      this.updateLoadingCounter();
+
       console.log(
-        "Fetching weather data for all 14ers using Open-Meteo API..."
+        `Fetching weather data for all ${this.totalCount} 14ers using Open-Meteo API...`
       );
 
       // Fetch weather for all mountains with rate limiting
@@ -83,6 +90,8 @@ class WeatherApp {
         return new Promise((resolve) => {
           setTimeout(async () => {
             const weather = await this.getWeatherForMountain(mountain);
+            this.loadedCount++;
+            this.updateLoadingCounter();
             resolve(weather);
           }, index * 100); // 100ms delay between requests to be respectful
         });
@@ -792,6 +801,14 @@ class WeatherApp {
 
     const index = Math.round(direction / 22.5) % 16;
     return `${directions[index]} wind`;
+  }
+
+  updateLoadingCounter() {
+    const counterElement = document.getElementById("loadingCounter");
+    if (counterElement) {
+      counterElement.textContent = `${this.loadedCount} of ${this.totalCount}`;
+      console.log(`Loading progress: ${this.loadedCount}/${this.totalCount}`);
+    }
   }
 
   showLoading() {

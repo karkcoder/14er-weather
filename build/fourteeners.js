@@ -1,7 +1,5 @@
 // Colorado 14ers with their coordinates and elevations
-// This list includes all 58 peaks over 14,000 feet (including those with <300ft prominence)
-// Colorado 14ers with their coordinates and elevations
-// This list includes all 59 peaks over 14,000 feet (including those with <300ft prominence)
+// This list includes all 60 peaks over 14,000 feet (including those with <300ft prominence)
 const coloradoFourteeners = [
   { name: "Mount Elbert", elevation: 14440, lat: 39.1178, lon: -106.4453 },
   { name: "Mount Massive", elevation: 14428, lat: 39.1875, lon: -106.4757 },

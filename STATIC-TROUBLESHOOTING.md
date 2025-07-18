@@ -38,7 +38,7 @@ The static content needs to be served through an HTTP server, not opened directl
 
 - ✅ The static build is working correctly
 - ✅ Weather data is being fetched from Open-Meteo API
-- ✅ All 59 Colorado 14ers are displayed with current weather
+- ✅ All 60 Colorado 14ers are displayed with current weather
 - ✅ Search, sorting, and theming all work
 
 ## Key Files Created

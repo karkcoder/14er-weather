@@ -3,6 +3,8 @@ class WeatherApp {
     this.weatherData = [];
     this.filteredData = [];
     this.currentTheme = localStorage.getItem("theme") || "light";
+    this.loadedCount = 0;
+    this.totalCount = 0;
     this.init();
   }
 
@@ -74,6 +76,11 @@ class WeatherApp {
       this.showLoading();
       this.hideError();
 
+      // Reset counters
+      this.loadedCount = 0;
+      this.totalCount = 60; // Based on actual count from fourteeners.js
+      this.updateLoadingCounter();
+
       const response = await fetch("/api/weather");
 
       if (!response.ok) {
@@ -83,6 +90,10 @@ class WeatherApp {
 
       this.weatherData = await response.json();
       this.filteredData = [...this.weatherData];
+
+      // Update counter to show completion
+      this.loadedCount = this.weatherData.length;
+      this.updateLoadingCounter();
 
       this.hideLoading();
       this.renderWeatherCards();
@@ -128,6 +139,13 @@ class WeatherApp {
         break;
     }
     this.renderWeatherCards();
+  }
+
+  updateLoadingCounter() {
+    const counterElement = document.getElementById("loadingCounter");
+    if (counterElement) {
+      counterElement.textContent = `${this.loadedCount} of ${this.totalCount}`;
+    }
   }
 
   showLoading() {

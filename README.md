@@ -1,10 +1,10 @@
 # Colorado 14ers Weather App
 
-A comprehensive weather application that displays current conditions and a 7-day forecast for all 59 Colorado peaks above 14,000 feet, with intelligent hiking condition analysis.
+A comprehensive weather application that displays current conditions and a 7-day forecast for all 60 Colorado peaks above 14,000 feet, with intelligent hiking condition analysis.
 
 ## Features
 
-- **Complete 14ers Database**: All 59 Colorado fourteeners with accurate coordinates and elevations
+- **Complete 14ers Database**: All 60 Colorado fourteeners with accurate coordinates and elevations
 - **Real-time Weather Data**: Current temperature, conditions, humidity, wind speed, and visibility
 - **7-Day Weather Forecast**: Detailed weather forecast for the week ahead
 - **Smart Hiking Analysis**: AI-powered evaluation of hiking conditions for each day
@@ -135,7 +135,7 @@ The app displays weather cards for each 14er showing:
 
 ## Colorado 14ers Included
 
-The app includes **59 Colorado fourteeners** - all peaks in Colorado above 14,000 feet:
+The app includes **60 Colorado fourteeners** - all peaks in Colorado above 14,000 feet:
 
 ### **Official 53 Fourteeners** (300+ feet prominence)
 
@@ -178,7 +178,7 @@ These peaks are commonly recognized by climbers but have less than 300 feet of t
 - **Mount Blue Sky** (14,271 ft) - Formerly Mount Evans (renamed in 2023)
 - **Mount Cameron** (14,238 ft) - Included despite low prominence due to historical significance
 
-_Total: 53 official + 6 additional = 59 fourteeners_
+_Total: 53 official + 7 additional = 60 fourteeners_
 
 ## Mountain Ranges Covered
 
@@ -190,7 +190,7 @@ _Total: 53 official + 6 additional = 59 fourteeners_
 - **Mosquito Range**: 5 peaks (including Mount Lincoln)
 - **Needle Mountains**: 3 peaks (including North Eolus)
 
-_All 59 peaks span Colorado's major mountain ranges and include both standard prominence peaks and commonly climbed sub-peaks._
+_All 60 peaks span Colorado's major mountain ranges and include both standard prominence peaks and commonly climbed sub-peaks._
 
 ## Data Completeness & Standards
 
