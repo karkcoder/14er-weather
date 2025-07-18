@@ -6,6 +6,9 @@ class WeatherApp {
     this.loadedCount = 0;
     this.totalCount = 0;
     this.init();
+
+    // Make app instance available globally for modal functions
+    window.weatherApp = this;
   }
 
   init() {
@@ -168,6 +171,165 @@ class WeatherApp {
     document.getElementById("error").style.display = "none";
   }
 
+  openForecastModal(mountainId, mountainName) {
+    // Find the mountain data
+    const mountain = this.weatherData.find((m) => m.mountain === mountainName);
+    if (!mountain || !mountain.sevenDayForecast) {
+      console.error("Mountain data not found:", mountainName);
+      return;
+    }
+
+    // Create modal if it doesn't exist
+    let modal = document.getElementById("forecastModal");
+    if (!modal) {
+      modal = this.createForecastModal();
+      document.body.appendChild(modal);
+    }
+
+    // Update modal content
+    this.updateModalContent(modal, mountain);
+
+    // Show modal
+    modal.classList.add("active");
+    document.body.style.overflow = "hidden"; // Prevent background scrolling
+  }
+
+  closeForecastModal() {
+    const modal = document.getElementById("forecastModal");
+    if (modal) {
+      modal.classList.remove("active");
+      document.body.style.overflow = ""; // Restore scrolling
+    }
+  }
+
+  createForecastModal() {
+    const modal = document.createElement("div");
+    modal.id = "forecastModal";
+    modal.className = "modal-overlay";
+
+    modal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title" id="modalTitle">7-Day Forecast</h2>
+          <button class="modal-close" onclick="window.weatherApp.closeForecastModal()">×</button>
+        </div>
+        <div class="modal-body" id="modalBody">
+          <!-- Content will be populated dynamically -->
+        </div>
+      </div>
+    `;
+
+    // Close modal when clicking outside
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        this.closeForecastModal();
+      }
+    });
+
+    // Close modal with Escape key
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        this.closeForecastModal();
+      }
+    });
+
+    return modal;
+  }
+
+  updateModalContent(modal, mountain) {
+    const modalTitle = modal.querySelector("#modalTitle");
+    const modalBody = modal.querySelector("#modalBody");
+
+    modalTitle.textContent = `${mountain.mountain} - 7-Day Forecast & Hiking Conditions`;
+
+    const today = new Date();
+    const dayNames = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+
+    let contentHtml = "";
+
+    mountain.sevenDayForecast.forEach((day, index) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() + index);
+      const dayName =
+        index === 0
+          ? "Today"
+          : index === 1
+          ? "Tomorrow"
+          : dayNames[date.getDay()];
+
+      const isBestDay = index === mountain.bestHikingDay && index > 0;
+      const hiking = day.hiking;
+
+      contentHtml += `
+        <div class="modal-forecast-day ${
+          isBestDay ? "best-hiking-day" : ""
+        } hiking-${hiking.category}">
+          <div class="forecast-day-header">
+            <div class="day-info">
+              <span class="day-name">${dayName}</span>
+              ${
+                isBestDay
+                  ? '<span class="best-day-badge">🥾 Best for Hiking!</span>'
+                  : ""
+              }
+            </div>
+            <div class="day-temps">
+              <span class="high-temp">${day.high}°</span> / 
+              <span class="low-temp">${day.low}°</span>
+            </div>
+          </div>
+          
+          <div class="forecast-details">
+            <div class="weather-summary">
+              <span class="weather-icon-small">${this.getWeatherEmoji(
+                day.condition,
+                day.icon
+              )}</span>
+              <span class="weather-desc">${day.description}</span>
+            </div>
+            
+            <div class="conditions-grid">
+              <div class="condition-item">
+                <span class="condition-icon">💧</span>
+                <span>${day.precipitation.toFixed(1)}"</span>
+              </div>
+              <div class="condition-item">
+                <span class="condition-icon">💨</span>
+                <span>${day.windSpeed} mph</span>
+              </div>
+              <div class="condition-item">
+                <span class="condition-icon">☁️</span>
+                <span>${day.cloudCover}%</span>
+              </div>
+            </div>
+            
+            <div class="hiking-assessment">
+              <div class="hiking-score">
+                <span class="score-label">Hiking Score:</span>
+                <span class="score-value score-${hiking.category}">${
+        hiking.score
+      }/100</span>
+                <span class="score-rating">${hiking.rating}</span>
+              </div>
+              <div class="hiking-summary">${hiking.summary}</div>
+              ${this.generateHikingDetails(hiking)}
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    modalBody.innerHTML = contentHtml;
+  }
+
   renderWeatherCards() {
     const grid = document.getElementById("weatherGrid");
 
@@ -254,94 +416,18 @@ class WeatherApp {
       return this.generateLegacyForecast(mountain);
     }
 
-    const today = new Date();
-    const dayNames = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-    ];
+    const mountainId = mountain.mountain.replace(/\s+/g, "-").toLowerCase();
 
+    // Generate button to open modal
     let forecastHtml = '<div class="seven-day-forecast">';
-    forecastHtml +=
-      '<div class="forecast-header">7-Day Forecast & Hiking Conditions</div>';
-
-    mountain.sevenDayForecast.forEach((day, index) => {
-      const date = new Date(today);
-      date.setDate(today.getDate() + index);
-      const dayName =
-        index === 0
-          ? "Today"
-          : index === 1
-          ? "Tomorrow"
-          : dayNames[date.getDay()];
-
-      const isBestDay = index === mountain.bestHikingDay && index > 0;
-      const hiking = day.hiking;
-
-      forecastHtml += `
-        <div class="forecast-day ${isBestDay ? "best-hiking-day" : ""} hiking-${
-        hiking.category
-      }">
-          <div class="forecast-day-header">
-            <div class="day-info">
-              <span class="day-name">${dayName}</span>
-              ${
-                isBestDay
-                  ? '<span class="best-day-badge">🥾 Best for Hiking!</span>'
-                  : ""
-              }
-            </div>
-            <div class="day-temps">
-              <span class="high-temp">${day.high}°</span> / 
-              <span class="low-temp">${day.low}°</span>
-            </div>
-          </div>
-          
-          <div class="forecast-details">
-            <div class="weather-summary">
-              <span class="weather-icon-small">${this.getWeatherEmoji(
-                day.condition,
-                day.icon
-              )}</span>
-              <span class="weather-desc">${day.description}</span>
-            </div>
-            
-            <div class="conditions-grid">
-              <div class="condition-item">
-                <span class="condition-icon">💧</span>
-                <span>${day.precipitation}"</span>
-              </div>
-              <div class="condition-item">
-                <span class="condition-icon">💨</span>
-                <span>${day.windSpeed} mph</span>
-              </div>
-              <div class="condition-item">
-                <span class="condition-icon">☁️</span>
-                <span>${day.cloudCover}%</span>
-              </div>
-            </div>
-            
-            <div class="hiking-assessment">
-              <div class="hiking-score">
-                <span class="score-label">Hiking Score:</span>
-                <span class="score-value score-${hiking.category}">${
-        hiking.score
-      }/100</span>
-                <span class="score-rating">${hiking.rating}</span>
-              </div>
-              <div class="hiking-summary">${hiking.summary}</div>
-              ${this.generateHikingDetails(hiking)}
-            </div>
-          </div>
-        </div>
-      `;
-    });
-
+    forecastHtml += `
+      <button class="forecast-button" onclick="window.weatherApp.openForecastModal('${mountainId}', '${mountain.mountain}')">
+        <span>📅</span>
+        <span>View 7-Day Forecast & Hiking Conditions</span>
+      </button>
+    `;
     forecastHtml += "</div>";
+
     return forecastHtml;
   }
 
